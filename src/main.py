@@ -1,5 +1,6 @@
 import time
 import threading
+import os
 
 class master:
     def __init__(self):
@@ -8,20 +9,20 @@ class master:
         self.cycle = 1. #sleep time between loop updates
         self.commands = {"stop": self.stop,
                         "pause": self.pause,
-                        "help": self.help} #all user commands
+                        "help": self.help,
+                        "config": self.read_config} #all user commands
         self.nodes = {}
         self.jobs = {}
 
     def mainloop(self):
-        if self.is_running: print("[controller] scheduler is running")
         i = 0
         while self.is_running:
             if not self.is_paused:
                 None
             time.sleep(self.cycle)
-            i += 1
-            if i > 10:
-                self.is_running = False
+            # i += 1
+            # if i > 10:
+            #     self.is_running = False
 
     def take_inputs(self):
         while self.is_running:
@@ -37,6 +38,7 @@ class master:
         ctl = threading.Thread(target=self.mainloop)
         ctl.daemon = True
         ctl.start()
+        print("[controller] scheduler is running")
         self.take_inputs()
         ctl.join()
 
@@ -46,12 +48,12 @@ class master:
 
     def pause(self):
         if self.is_paused:
-            print("[controller] unpausing")
+            print("[controller] unpausing daemon")
             self.is_paused = False
         else:
             self.is_paused = True
             time.sleep(self.cycle)
-            print("[controller] pausing")
+            print("[controller] pausing daemon")
 
     def help(self):
         print("\nAvailable user commands:")
@@ -60,15 +62,17 @@ class master:
         print("")
 
     def read_config(self):
-        print("[controller] paused")
-        self.is_paused = True
-        time.sleep(1)
+        if not self.is_paused:
+            self.pause()
         try:
             print("[controller] reading config...")
+            config_file = open(__file__.replace("main.py","config.txt"), 'r')
+            print(config_file.read())
+            print("[controller] configured")
+            config_file.close()
         except:
             raise Warning("[controller] Unable to read config file")
-        print("[controller] unpaused")
-        self.is_paused = False
+        self.pause()
         
 
 m = master()
