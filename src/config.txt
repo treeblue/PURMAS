@@ -1,1 +1,2 @@
-Hello from config file
+Node: Node01 192.168.1.1
+Node: Node02 192.168.1.2
