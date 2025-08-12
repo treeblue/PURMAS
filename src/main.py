@@ -11,18 +11,13 @@ class master:
                         "pause": self.pause,
                         "help": self.help,
                         "config": self.read_config} #all user commands
-        self.nodes = {}
         self.jobs = {}
 
     def mainloop(self):
-        i = 0
         while self.is_running:
             if not self.is_paused:
                 None
             time.sleep(self.cycle)
-            # i += 1
-            # if i > 10:
-            #     self.is_running = False
 
     def take_inputs(self):
         while self.is_running:
@@ -38,7 +33,7 @@ class master:
         ctl = threading.Thread(target=self.mainloop)
         ctl.daemon = True
         ctl.start()
-        print("[controller] scheduler is running")
+        print("[controller] Scheduler is running")
         self.take_inputs()
         ctl.join()
 
@@ -48,12 +43,12 @@ class master:
 
     def pause(self):
         if self.is_paused:
-            print("[controller] unpausing daemon")
+            print("[controller] Resuming daemon")
             self.is_paused = False
         else:
             self.is_paused = True
             time.sleep(self.cycle)
-            print("[controller] pausing daemon")
+            print("[controller] Pausing daemon")
 
     def help(self):
         print("\nAvailable user commands:")
@@ -64,14 +59,41 @@ class master:
     def read_config(self):
         if not self.is_paused:
             self.pause()
+        
         try:
-            print("[controller] reading config...")
-            config_file = open(__file__.replace("main.py","config.txt"), 'r')
-            print(config_file.read())
-            print("[controller] configured")
-            config_file.close()
+            open(__file__.replace("main.py","config.txt"), 'r')
         except:
-            raise Warning("[controller] Unable to read config file")
+            raise Exception("[controller] Unable to read config file")
+        config_file = open(__file__.replace("main.py","config.txt"), 'r')
+
+        node_dir = __file__.replace("/src/main.py","/Nodes")
+        try:
+            os.listdir(node_dir)
+        except:
+            raise Warning("[controller] Could not update the /Nodes directory")
+        
+        print("[controller] Replacing Node information files...")
+        self.nodes = {}
+        for file in os.listdir(node_dir):
+            os.remove(f"{node_dir}/{file}")
+        for line in config_file:
+            if line[:6] == "Node: ":
+                node_info = line.split()
+                try:
+                    node_name = node_info[1]
+                    node_ip = node_info[2]
+                    with open(f"{node_dir}/{node_name}.txt",'w') as node_file:
+                        node_file.write(f"ip address: {node_ip}\n")
+                    self.nodes[node_name] = node_ip
+            
+                except:
+                    raise Warning(f"[controller] Incorrect config file syntax:\n{line}Should be in the following format:\nNode: [node_name] [node_ip]")
+        print(self.nodes)
+
+        print("[controller] Configured")
+        config_file.close()
+        
+            
         self.pause()
         
 
