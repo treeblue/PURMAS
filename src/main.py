@@ -3,66 +3,64 @@ import threading
 
 class master:
     def __init__(self):
-        self.running = False
-        self.paused = False
+        self.is_running = False
+        self.is_paused = False
         self.cycle = 1. #sleep time between loop updates
+        self.commands = {"stop": self.stop,"pause": self.pause} #all user commands
         self.nodes = {}
         self.jobs = {}
 
     def mainloop(self):
-        if self.running: print("[controller] scheduler is running...")
-        while self.running:
-            if not self.paused:
+        if self.is_running: print("[controller] scheduler is running")
+        i = 0
+        while self.is_running:
+            if not self.is_paused:
                 None
-            # self.stop_condition()
+            time.sleep(self.cycle)
+            i += 1
+            if i > 10:
+                self.is_running = False
+
+    def take_inputs(self):
+        while self.is_running:
+            cmd = input("> ")
+            if cmd in self.commands:
+                self.commands[cmd]()
+            else:
+                print("Unrecognised command")
             time.sleep(self.cycle)
 
-    # def stop_condition(self):
-    #     if self.i > 5:
-    #         self.running = False
-    #         print("controller is being stopped")
-
     def start(self):
-        self.running = True
+        self.is_running = True
         ctl = threading.Thread(target=self.mainloop)
         ctl.daemon = True
         ctl.start()
         self.take_inputs()
         ctl.join()
 
-    def take_inputs(self):
-        while True:
-            self.cmd = input("> ")
-            if self.cmd == "quit":
-                self.running = False
-                break
-            elif self.cmd == "pause":
-                self.pause()
-            elif self.cmd == "config":
-                self.read_config()
-            else:
-                print("Unrecognised command")
-            time.sleep(self.cycle)
+    def stop(self):
+        print("[controller] scheduler is stopping")
+        self.is_running = False
 
     def pause(self):
-        if self.paused:
-            print("[controller] unpaused")
-            self.paused = False
+        if self.is_paused:
+            print("[controller] unpausing")
+            self.is_paused = False
         else:
-            self.paused = True
+            self.is_paused = True
             time.sleep(self.cycle)
-            print("[controller] paused")
+            print("[controller] pausing")
 
     def read_config(self):
         print("[controller] paused")
-        self.paused = True
+        self.is_paused = True
         time.sleep(1)
         try:
             print("[controller] reading config...")
         except:
             raise Warning("[controller] Unable to read config file")
         print("[controller] unpaused")
-        self.paused = False
+        self.is_paused = False
         
 
 m = master()
