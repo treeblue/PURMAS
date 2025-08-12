@@ -4,21 +4,23 @@ import threading
 class master:
     def __init__(self):
         self.running = False
-        self.pause = False
-        self.i = 0
+        self.paused = False
+        self.cycle = 1. #sleep time between loop updates
+        self.nodes = {}
+        self.jobs = {}
 
     def mainloop(self):
         if self.running: print("[controller] scheduler is running...")
         while self.running:
-            if not self.pause:
+            if not self.paused:
                 None
-            self.stop_condition()
-            time.sleep(1)
+            # self.stop_condition()
+            time.sleep(self.cycle)
 
-    def stop_condition(self):
-        if self.i > 5:
-            self.running = False
-            print("controller is being stopped")
+    # def stop_condition(self):
+    #     if self.i > 5:
+    #         self.running = False
+    #         print("controller is being stopped")
 
     def start(self):
         self.running = True
@@ -34,7 +36,34 @@ class master:
             if self.cmd == "quit":
                 self.running = False
                 break
-            time.sleep(1)
+            elif self.cmd == "pause":
+                self.pause()
+            elif self.cmd == "config":
+                self.read_config()
+            else:
+                print("Unrecognised command")
+            time.sleep(self.cycle)
+
+    def pause(self):
+        if self.paused:
+            print("[controller] unpaused")
+            self.paused = False
+        else:
+            self.paused = True
+            time.sleep(self.cycle)
+            print("[controller] paused")
+
+    def read_config(self):
+        print("[controller] paused")
+        self.paused = True
+        time.sleep(1)
+        try:
+            print("[controller] reading config...")
+        except:
+            raise Warning("[controller] Unable to read config file")
+        print("[controller] unpaused")
+        self.paused = False
+        
 
 m = master()
 m.start()
