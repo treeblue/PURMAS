@@ -6,7 +6,9 @@ class master:
         self.is_running = False
         self.is_paused = False
         self.cycle = 1. #sleep time between loop updates
-        self.commands = {"stop": self.stop,"pause": self.pause} #all user commands
+        self.commands = {"stop": self.stop,
+                        "pause": self.pause,
+                        "help": self.help} #all user commands
         self.nodes = {}
         self.jobs = {}
 
@@ -50,6 +52,12 @@ class master:
             self.is_paused = True
             time.sleep(self.cycle)
             print("[controller] pausing")
+
+    def help(self):
+        print("\nAvailable user commands:")
+        for cmd in self.commands:
+            print(f" - {cmd}")
+        print("")
 
     def read_config(self):
         print("[controller] paused")
