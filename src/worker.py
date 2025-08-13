@@ -1,19 +1,19 @@
+import time
 import socket
 
 class worker:
     def __init__(self):
-        self.node_name = None
-        self.running = True
+        self.node_name = "NAMELESS NODE"
+        self.is_running = True
         self.status = ""
-        self.commands = 
+        self.commands = {"stop": self.stop}
+        self.cycle = 1.
 
     def workerloop(self):
-        while self.running:
+        while self.is_running:
             cmd = self.listen()
             if cmd in self.commands:
                 self.commands[cmd]()
-            else:
-                print("Unrecognised command")
             time.sleep(self.cycle)
 
     def listen(self):
@@ -29,23 +29,13 @@ class worker:
                     if not data: break
                     return data.decode()
 
+    def stop(self):
+        print(f"[{self.node_name}] worker is stopping")
+        self.is_running = False
 
-# HOST = ''                 # Symbolic name meaning all available interfaces
-# PORT = 50007              # Arbitrary non-privileged port
+    # def handshake(self):
 
-# def listen():
-#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#         s.bind((HOST, PORT))
-#         s.listen(1)
-#         conn, addr = s.accept()
-#         with conn:
-#             print('Connected by', addr)
-#             while True:
-#                 data = conn.recv(1024)
-#                 if not data: break
-#                 print("Message:", data.decode())
-        
+
 if __name__ == "__main__":
     w = worker()
-    while True:
-        w.listen()
+    w.workerloop()

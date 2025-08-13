@@ -101,11 +101,12 @@ class controller:
             self.pause()
 
     def send(self):
+        message = input("\t> ")
         HOST = self.nodes["Node01"]
         PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
-            s.sendall(b"Hello from host")
+            s.sendall(message.encode())
 
 if __name__ == "__main__":
     m = controller()
