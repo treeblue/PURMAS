@@ -1,6 +1,7 @@
 import time
 import threading
 import os
+import socket
 
 class master:
     def __init__(self):
@@ -10,7 +11,8 @@ class master:
         self.commands = {"stop": self.stop,
                         "pause": self.pause,
                         "help": self.help,
-                        "config": self.read_config} #all user commands
+                        "config": self.read_config,
+                        "send": self.send} #all user commands
         self.jobs = {}
 
     def mainloop(self):
@@ -29,6 +31,7 @@ class master:
             time.sleep(self.cycle)
 
     def start(self):
+        self.read_config()
         self.is_running = True
         ctl = threading.Thread(target=self.mainloop)
         ctl.daemon = True
@@ -57,8 +60,9 @@ class master:
         print("")
 
     def read_config(self):
-        if not self.is_paused:
-            self.pause()
+        if self.is_running:
+            if not self.is_paused:
+                self.pause()
         
         try:
             open(__file__.replace("main.py","config.txt"), 'r')
@@ -93,9 +97,15 @@ class master:
         print("[controller] Configured")
         config_file.close()
         
-            
-        self.pause()
-        
+        if self.is_running:
+            self.pause()
+
+    def send(self):
+        HOST = self.nodes["Node01"]
+        PORT = 50007
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((HOST, PORT))
+            s.sendall(b"Hello from host")
 
 m = master()
 m.start()
