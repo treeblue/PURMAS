@@ -3,7 +3,7 @@ import threading
 import os
 import socket
 
-class master:
+class controller:
     def __init__(self):
         self.is_running = False
         self.is_paused = False
@@ -107,5 +107,6 @@ class master:
             s.connect((HOST, PORT))
             s.sendall(b"Hello from host")
 
-m = master()
-m.start()
+if __name__ == "__main__":
+    m = controller()
+    m.start()
