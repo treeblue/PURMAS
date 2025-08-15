@@ -13,13 +13,16 @@ class controller:
                         "help": self.help,
                         "config": self.read_config,
                         "send": self.send} #all user commands
+        # self.worker_commands = {"print":}
         self.jobs = {}
 
     def mainloop(self):
         while self.is_running:
             if not self.is_paused:
+                # self.listen()
                 None
-            time.sleep(self.cycle)
+            else:
+                time.sleep(self.cycle)
 
     def take_inputs(self):
         while self.is_running:
@@ -64,19 +67,25 @@ class controller:
             if not self.is_paused:
                 self.pause()
         
+        print("[controller] Reading config file...")
         try:
             open(__file__.replace("main.py","config.txt"), 'r')
         except:
             raise Exception("[controller] Unable to read config file")
         config_file = open(__file__.replace("main.py","config.txt"), 'r')
+        
+        for line in config_file:
+            if line[:12] == "Controller: ":
+                self.controller_ip = line[12:].strip('\n')
+                break
 
+        print("[controller] Replacing Node information files...")
         node_dir = __file__.replace("/src/main.py","/Nodes")
         try:
             os.listdir(node_dir)
         except:
             raise Warning("[controller] Could not update the /Nodes directory")
-        
-        print("[controller] Replacing Node information files...")
+
         self.nodes = {}
         for file in os.listdir(node_dir):
             os.remove(f"{node_dir}/{file}")
@@ -89,24 +98,55 @@ class controller:
                     with open(f"{node_dir}/{node_name}.txt",'w') as node_file:
                         node_file.write(f"ip address: {node_ip}\n")
                     self.nodes[node_name] = node_ip
-            
                 except:
-                    raise Warning(f"[controller] Incorrect config file syntax:\n{line}Should be in the following format:\nNode: [node_name] [node_ip]")
-        print(self.nodes)
+                    print(f"[controller] Incorrect config file syntax:\n{line}Should be in the following format:\nNode: [node_name] [node_ip]")
+        
+        print("[controller] Checking nodes...")
+        self.status = {}
+        for node_name in self.nodes:
+            try:
+                self.send(node_name,"config")
+                time.sleep(self.cycle)
+                self.send(node_name,self.controller_ip)
+                self.send(node_name,node_name)
+                print(self.listen(60.))
+                self.status[node_name] = self.listen(60.)
+            except:
+                self.status[node_name] = "DOWN"
 
+        print(self.status)
         print("[controller] Configured")
         config_file.close()
         
         if self.is_running:
             self.pause()
 
-    def send(self):
-        message = input("\t> ")
-        HOST = self.nodes["Node01"]
+    def send(self, listener:str , message:str):
+        time.sleep(2*self.cycle)
+        HOST = self.nodes[listener]
         PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
             s.sendall(message.encode())
+
+    def listen(self, timeout:float=0.):
+        time.sleep(self.cycle)
+        HOST = ''
+        PORT = 50007
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((HOST,PORT))
+            s.listen()
+            s.settimeout(timeout)
+            try:
+                conn, addr = s.accept()
+                with conn:
+                    while True:
+                        data = conn.recv(1024)
+                        if not data: break
+                        return data.decode()
+            except socket.timeout:
+                None
+            return ""
 
 if __name__ == "__main__":
     m = controller()
