@@ -9,6 +9,7 @@ class controller:
         self.is_paused = False
         self.cycle = 1. #sleep time between loop updates
         self.commands = {"stop": self.stop,
+                        "stop all": self.stop_all,
                         "pause": self.pause,
                         "help": self.help,
                         "config": self.read_config,
@@ -48,6 +49,15 @@ class controller:
     def stop(self):
         print("[controller] scheduler is stopping")
         self.is_running = False
+    
+    def stop_all(self):
+        print("[controller] Stopping workers")
+        for node_name in self.nodes:
+            try:
+                self.send(node_name,"stop")
+            except:
+                None
+        self.stop()
 
     def pause(self):
         if self.is_paused:
