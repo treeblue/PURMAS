@@ -11,35 +11,41 @@ class worker:
                         "config": self.configure}
         self.cycle = 1.
         self.controller_ip = ""
+        self.send_port = 50007
+        self.listen_port = 50007
 
     def workerloop(self):
         while self.is_running:
             if not self.is_paused:
-                cmd = self.listen()
+                cmd = self.listen(60.)
                 if cmd in self.commands:
                     self.commands[cmd]()
-            time.sleep(self.cycle)
+            else:
+                time.sleep(self.cycle)
 
-    def listen(self):
+    def listen(self, timeout:float=10.):
         time.sleep(self.cycle)
         HOST = ''
-        PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((HOST, PORT))
+            s.bind((HOST, self.listen_port))
             s.listen()
-            conn, addr = s.accept()
-            with conn:
-                while True:
-                    data = conn.recv(1024)
-                    if not data: break
-                    return data.decode()
+            s.settimeout(timeout)
+            try:
+                conn, addr = s.accept()
+                with conn:
+                    while True:
+                        data = conn.recv(1024)
+                        if not data: break
+                        return data.decode()
+            except socket.timeout:
+                None
+            return ""
 
     def send(self, message:str):
         time.sleep(self.cycle)
         HOST = self.controller_ip
-        PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
+            s.connect((HOST, self.send_port))
             s.sendall(message.encode())
 
     def stop(self):
@@ -50,15 +56,18 @@ class worker:
         self.is_paused = True
         time.sleep(self.cycle)
         print("configuring...")
-        #expect controller to send information in specific order:
-        #controller ip
-        #worker node name
+        #expect controller to send and receive information in specific order:
+        #listen for: controller ip
         self.controller_ip = self.listen()
+        #listen for: worker node name
         self.node_name = self.listen()
+        #send: message
         time.sleep(self.cycle)
         print(f"[{self.node_name}] Configured")
         self.send(f"[{self.node_name}] Configured")
+        #send: status
         self.send(self.status)
+
         self.is_paused = False
 
 

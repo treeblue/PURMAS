@@ -15,6 +15,8 @@ class controller:
                         "send": self.send} #all user commands
         # self.worker_commands = {"print":}
         self.jobs = {}
+        self.send_port = 50007
+        self.listen_port = 50007
 
     def mainloop(self):
         while self.is_running:
@@ -105,12 +107,15 @@ class controller:
         self.status = {}
         for node_name in self.nodes:
             try:
+                #tell worker to configure
                 self.send(node_name,"config")
                 time.sleep(self.cycle)
+                #send: controller ip
                 self.send(node_name,self.controller_ip)
+                #send: node name
                 self.send(node_name,node_name)
-                print(self.listen(60.))
-                self.status[node_name] = self.listen(60.)
+                print(self.listen(10.))
+                self.status[node_name] = self.listen(10.)
             except:
                 self.status[node_name] = "DOWN"
 
@@ -124,17 +129,15 @@ class controller:
     def send(self, listener:str , message:str):
         time.sleep(2*self.cycle)
         HOST = self.nodes[listener]
-        PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
+            s.connect((HOST, self.send_port))
             s.sendall(message.encode())
 
     def listen(self, timeout:float=0.):
         time.sleep(self.cycle)
         HOST = ''
-        PORT = 50007
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((HOST,PORT))
+            s.bind((HOST,self.listen_port))
             s.listen()
             s.settimeout(timeout)
             try:
