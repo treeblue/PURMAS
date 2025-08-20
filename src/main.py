@@ -56,10 +56,7 @@ class controller:
     def stop_all(self):
         print("[controller] Stopping workers")
         for node_name in self.nodes:
-            try:
-                self.send(node_name,"stop")
-            except:
-                None
+            self.send(node_name,"stop")
         self.stop()
 
     def pause(self):
@@ -142,8 +139,16 @@ class controller:
         time.sleep(self.cycle)
         HOST = self.nodes[listener]
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, self.send_port))
-            s.sendall(message.encode())
+            try:
+                s.connect((HOST, self.send_port))
+                s.sendall(message.encode())
+            except:
+                time.sleep(self.cycle)
+                try:
+                    s.connect((HOST, self.send_port))
+                    s.sendall(message.encode())
+                except:
+                    None
 
     def listen(self, timeout:float=10.)->str:
         time.sleep(self.cycle)

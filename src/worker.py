@@ -48,8 +48,16 @@ class worker:
         time.sleep(self.cycle)
         HOST = self.controller_ip
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, self.send_port))
-            s.sendall(message.encode())
+            try:
+                s.connect((HOST, self.send_port))
+                s.sendall(message.encode())
+            except:
+                time.sleep(self.cycle)
+                try:
+                    s.connect((HOST, self.send_port))
+                    s.sendall(message.encode())
+                except:
+                    None
 
     def stop(self):
         print(f"[{self.node_name}] Worker is stopping")
