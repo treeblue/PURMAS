@@ -8,25 +8,28 @@ class worker:
         self.is_paused = False
         self.status = "UNKOWN"
         self.commands = {"stop": self.stop,
-                        "config": self.configure}
+                        "config": self.configure,
+                        "status": self.send_status}
         self.cycle = 1.
         self.controller_ip = ""
-        self.send_port = 50007
-        self.listen_port = 50007
+        self.send_port = 25732
+        self.listen_port = 25732
 
     def workerloop(self):
         while self.is_running:
             if not self.is_paused:
-                cmd = self.listen(60.)
+                self.update_status()
+                cmd = self.listen(10.)
                 if cmd in self.commands:
                     self.commands[cmd]()
             else:
                 time.sleep(self.cycle)
 
-    def listen(self, timeout:float=10.):
+    def listen(self, timeout:float=10.)->str:
         time.sleep(self.cycle)
         HOST = ''
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, self.listen_port))
             s.listen()
             s.settimeout(timeout)
@@ -49,13 +52,13 @@ class worker:
             s.sendall(message.encode())
 
     def stop(self):
-        print(f"[{self.node_name}] worker is stopping")
+        print(f"[{self.node_name}] Worker is stopping")
         self.is_running = False
 
     def configure(self):
         self.is_paused = True
         time.sleep(self.cycle)
-        print("configuring...")
+        print("Configuring...")
         #expect controller to send and receive information in specific order:
         #listen for: controller ip
         self.controller_ip = self.listen()
@@ -70,6 +73,18 @@ class worker:
 
         self.is_paused = False
 
+    def update_status(self):
+        if not self.is_paused:
+            self.status = "UP"
+        elif self.is_paused:
+            self.status = "PAUSED"
+        else:
+            self.status = "UNKOWN"
+    
+    def send_status(self):
+        time.sleep(self.cycle)
+        self.send(self.status)
+        time.sleep(self.cycle)
 
 if __name__ == "__main__":
     w = worker()

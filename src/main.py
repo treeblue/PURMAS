@@ -13,11 +13,14 @@ class controller:
                         "pause": self.pause,
                         "help": self.help,
                         "config": self.read_config,
-                        "send": self.send} #all user commands
+                        "send": self.send,
+                        "status": self.show_status} #all user commands
         # self.worker_commands = {"print":}
+        self.nodes = {}
+        self.status = {}
         self.jobs = {}
-        self.send_port = 50007
-        self.listen_port = 50007
+        self.send_port = 25732
+        self.listen_port = 25732
 
     def mainloop(self):
         while self.is_running:
@@ -47,7 +50,7 @@ class controller:
         ctl.join()
 
     def stop(self):
-        print("[controller] scheduler is stopping")
+        print("[controller] Scheduler is stopping")
         self.is_running = False
     
     def stop_all(self):
@@ -91,7 +94,7 @@ class controller:
                 self.controller_ip = line[12:].strip('\n')
                 break
 
-        print("[controller] Replacing Node information files...")
+        print("[controller] Replacing node information files...")
         node_dir = __file__.replace("/src/main.py","/Nodes")
         try:
             os.listdir(node_dir)
@@ -119,7 +122,7 @@ class controller:
             try:
                 #tell worker to configure
                 self.send(node_name,"config")
-                time.sleep(self.cycle)
+                time.sleep(2*self.cycle)
                 #send: controller ip
                 self.send(node_name,self.controller_ip)
                 #send: node name
@@ -129,7 +132,6 @@ class controller:
             except:
                 self.status[node_name] = "DOWN"
 
-        print(self.status)
         print("[controller] Configured")
         config_file.close()
         
@@ -137,16 +139,17 @@ class controller:
             self.pause()
 
     def send(self, listener:str , message:str):
-        time.sleep(2*self.cycle)
+        time.sleep(self.cycle)
         HOST = self.nodes[listener]
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, self.send_port))
             s.sendall(message.encode())
 
-    def listen(self, timeout:float=0.):
+    def listen(self, timeout:float=10.)->str:
         time.sleep(self.cycle)
         HOST = ''
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST,self.listen_port))
             s.listen()
             s.settimeout(timeout)
@@ -160,6 +163,23 @@ class controller:
             except socket.timeout:
                 None
             return ""
+
+    def get_status(self):
+        for node_name in self.nodes:
+            try:
+                self.send(node_name,"status")
+                self.status[node_name] = self.listen()
+            except:
+                continue
+
+    def show_status(self):
+        self.get_status()
+        print("NAME\t | STATUS")
+        for node_name in self.nodes:
+            print(f"{node_name}\t | {self.status[node_name]}")
+            
+            
+            
 
 if __name__ == "__main__":
     m = controller()
