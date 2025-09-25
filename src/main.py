@@ -14,10 +14,11 @@ class controller:
                         "help": self.help,
                         "config": self.read_config,
                         "send": self.send,
-                        "status": self.show_status} #all user commands
+                        "status": self.show_status,
+                        "run": self.run} #all user commands
         # self.worker_commands = {"print":}
-        self.nodes = {}
-        self.status = {}
+        self.nodes = {} #node name and node ip
+        self.status = {} #node name and node status
         self.jobs = {}
         self.send_port = 25732
         self.listen_port = 25732
@@ -182,7 +183,20 @@ class controller:
         print("NAME\t | STATUS")
         for node_name in self.nodes:
             print(f"{node_name}\t | {self.status[node_name]}")
-            
+
+    def run(self):
+        options = input("\t> ")
+        for node_name in self.nodes:
+            if self.status[node_name] == "UP":
+                break
+            else:
+                node_name = "no"
+        if node_name == "no":
+            print("no node currently available")
+        else:
+            self.send(node_name, "run")
+            self.send(node_name, options)
+
             
             
 
