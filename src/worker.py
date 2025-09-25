@@ -1,5 +1,6 @@
 import time
 import socket
+import subprocess
 
 class worker:
     def __init__(self):
@@ -9,7 +10,8 @@ class worker:
         self.status = "UNKOWN"
         self.commands = {"stop": self.stop,
                         "config": self.configure,
-                        "status": self.send_status}
+                        "status": self.send_status,
+                        "run": self.run}
         self.cycle = 1.
         self.controller_ip = ""
         self.send_port = 25732
@@ -82,7 +84,9 @@ class worker:
         self.is_paused = False
 
     def update_status(self):
-        if not self.is_paused:
+        if self.status == "BUSY":
+            None
+        elif not self.is_paused:
             self.status = "UP"
         elif self.is_paused:
             self.status = "PAUSED"
@@ -93,6 +97,25 @@ class worker:
         time.sleep(self.cycle)
         self.send(self.status)
         time.sleep(self.cycle)
+
+    def run(self):
+        from_user = self.listen()
+        print(f"[{self.node_name}] Running Job")
+        self.status = "BUSY"
+
+        options = from_user.split()
+
+        process = subprocess.Popen(["bash", options[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        with open("Jobs/stdout.txt", "w") as file:
+            file.write(stdout.decode())
+        with open("Jobs/stderr.txt", "w") as file:
+            file.write(stderr.decode())
+
+        print(f"[{self.node_name}] Job Complete")
+        self.status = "UP"
+        
 
 if __name__ == "__main__":
     w = worker()
