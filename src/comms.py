@@ -1,8 +1,9 @@
 import socket
 
 class intranode:
-    def __init__(self, sock_loc:str = "/tmp/PURMAS_input.sock"):
+    def __init__(self, sock_loc:str = "/tmp/PURMAS_input.sock", server:bool = False):
         self.sock_loc = sock_loc
+        self.server = server
         # self.end_msg = b"end_comm"
     
     #general
@@ -25,14 +26,22 @@ class intranode:
 
     #communication
     def write(self,message:str):
-        self.conn.sendall(message.encode())
+        if self.server:
+            self.conn.sendall(message.encode())
+        else:
+            self.sock.sendall(message.encode())
 
     def read(self)->str:
-        data = self.conn.recv(1024).decode()
-        return data.decode()
+        if self.server:
+            data = self.conn.recv(1024).decode()
+            return data
+        else:
+            data = self.sock.recv(1024).decode()
+            return data
 
     def close(self):
-        self.conn.close()
+        if self.server:
+            self.conn.close()
 
 
 class internode:
