@@ -43,6 +43,9 @@ class intranode:
         if self.server:
             self.conn.close()
 
+    def kill(self):
+        self.sock.close()
+
 
 class internode:
     def __init__(self, host:str = '', server:bool = False):
@@ -86,6 +89,9 @@ class internode:
     def close(self):
         if self.server:
             self.conn.close() 
+
+    def kill(self):
+        self.sock.close()
 
 if __name__ == "__main__":
     intra = intranode()
