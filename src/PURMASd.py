@@ -1,26 +1,26 @@
 import time
-import threading
-import os
-import socket
+# import threading
+# import os
+from comms import intranode
 
 class controller:
     def __init__(self):
-        self.is_paused = False
+        self.is_running = True
         self.nodes = {} #node name and node ip
         self.status = {} #node name and node status
         self.jobs = {}
 
     def start(self):
-        s = socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
-        s.bind("/tmp/PURMAS_input.sock")
-        s.listen(5)
-        while True:
-            conn, _ = s.accept()
-            data = conn.recv(1024)
-            cmd = data.decode()
-            #do things
-            conn.send(b"PURMAS_done")
-            conn.close()
+        comm = intranode()
+        comm.start()
+        comm.bind()
+        comm.listen()
+        while self.is_running:
+            comm.accept()
+            cmd = comm.read()
+            print(cmd)
+            self.is_running = False
+            comm.close()
             
 if __name__ == "__main__":
     m = controller()
