@@ -11,7 +11,7 @@ class controller:
         self.jobs = {}
 
     def start(self):
-        comm = intranode()
+        comm = intranode(server=True)
         comm.start()
         comm.bind()
         comm.listen()
