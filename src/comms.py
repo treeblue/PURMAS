@@ -20,7 +20,7 @@ class intranode:
         self.conn, _ = self.sock.accept()
 
     #client
-    def connect(self, message:str):
+    def connect(self):
         self.sock.connect(self.sock_loc)
 
     #communication
