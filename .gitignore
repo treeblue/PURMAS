@@ -1,3 +1,4 @@
 src/config.txt
 Nodes/*
 Jobs/*
+src/__pycache__
