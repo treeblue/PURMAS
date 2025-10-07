@@ -1,7 +1,7 @@
 import time
 # import threading
 # import os
-from comms import intranode
+from comms import intranode, internode
 
 class controller:
     def __init__(self):
@@ -43,8 +43,17 @@ class controller:
             files.append(arg)
             arg = self.comm.read()
         
+        comm = internode(host="192.168.0.32")
+        comm.start()
+        comm.connect()
+        comm.write("job")
+        comm.read()
+        comm.write(files[0])
+        comm.read()
+
         for i in files:
             print(i)
+
 
         
 
