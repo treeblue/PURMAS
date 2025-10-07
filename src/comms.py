@@ -54,15 +54,15 @@ class internode:
     def __init__(self, host:str = '', server:bool = False):
         self.sock_loc = host
         self.server = server
-        self.port = 25732
+        # self.port = 25732
 
     #general
     def start(self):
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
     #server
-    def bind(self):
-        self.sock.bind((self.sock_loc,self.port))
+    def bind(self,port:int=25732):
+        self.sock.bind((self.sock_loc,port))
 
     def listen(self, n:int=1):
         self.sock.listen(n)
@@ -96,5 +96,24 @@ class internode:
     def kill(self):
         self.sock.close()
 
-if __name__ == "__main__":
-    intra = intranode()
+#intra example
+if False:
+    #server
+    comm = intranode(server=True)
+    comm.start()
+    comm.bind()
+    comm.listen()
+    while True:
+        comm.accept()
+        message = comm.read()
+        #do thing with message
+        comm.close()
+    comm.kill()
+
+    #client
+    comm = intranode()
+    comm.start()
+    comm.connect()
+    comm.write("hello world")
+
+#inter example??
