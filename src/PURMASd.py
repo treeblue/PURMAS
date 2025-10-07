@@ -29,6 +29,8 @@ class controller:
         option = self.comm.read()
         if option == "stop":
             self.is_running = False
+        elif option == "none":
+            None #set up worker configuration
         else:
             print(f'Invalid argument in pconfig: {option}')
 
