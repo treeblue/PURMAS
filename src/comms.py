@@ -1,4 +1,5 @@
 import socket
+import os
 
 class intranode:
     def __init__(self, sock_loc:str = "/tmp/PURMAS_input.sock", server:bool = False):
@@ -8,6 +9,8 @@ class intranode:
     
     #general
     def start(self):
+        if self.server and os.path.exists(self.sock_loc):
+            os.remove(self.sock_loc)  # remove old socket file
         self.sock = socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
 
     #server
