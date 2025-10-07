@@ -11,7 +11,10 @@ def main():
     comm.connect()
     comm.write("pconfig")
     comm.read()
-    comm.write(sys.argv[1])
+    if len(sys.argv) > 1:
+        comm.write(sys.argv[1])
+    else:
+        comm.write("none")
 
 if __name__ == "__main__":
     main()
