@@ -71,7 +71,7 @@ class internode:
         self.conn, _ = self.sock.accept()
 
     #client
-    def connect(self):
+    def connect(self,port:int=25732):
         self.sock.connect((self.sock_loc,port))
 
     #communication
