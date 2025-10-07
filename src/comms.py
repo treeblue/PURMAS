@@ -72,7 +72,7 @@ class internode:
 
     #client
     def connect(self):
-        self.sock.connect((self.sock_loc,self.port))
+        self.sock.connect((self.sock_loc,port))
 
     #communication
     def write(self,message:str):
