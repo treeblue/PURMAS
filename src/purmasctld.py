@@ -6,7 +6,8 @@ from comms import intranode
 class controller:
     def __init__(self):
         self.is_running = True
-        self.commands = {"pconfig": self.config} #all commands
+        self.commands = {"pconfig": self.config,
+                        "psubmit": self.submit} #all commands
         self.nodes = {} #node name and node ip
         self.status = {} #node name and node status
         self.jobs = {}
@@ -34,7 +35,18 @@ class controller:
         else:
             print(f'Invalid argument in pconfig: {option}')
 
+    def submit(self):
+        self.comm.write("next")
+        files = []
+        arg = self.comm.read()
+        while arg != "done":
+            files.append(arg)
+            arg = self.comm.read()
+        
+        for i in files:
+            print(i)
 
+        
 
 if __name__ == "__main__":
     m = controller()
