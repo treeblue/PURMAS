@@ -5,7 +5,6 @@ def main():
     comm.start()
     comm.connect()
     comm.write("Hello World?")
-    # comm.close()
 
 if __name__ == "__main__":
     main()
