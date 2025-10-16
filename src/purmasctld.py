@@ -1,6 +1,6 @@
 import time
 # import threading
-# import os
+import os
 from comms import intranode, internode
 
 class controller:
@@ -31,7 +31,59 @@ class controller:
         if option == "stop":
             self.is_running = False
         elif option == "none":
-            None #set up worker configuration
+            print("[controller] Reading config file...")
+            try:
+                open(__file__.replace("purmasctld.py","config.txt"), 'r')
+            except:
+                raise Exception("[controller] Unable to read config file")
+            config_file = open(__file__.replace("purmasctld.py","config.txt"), 'r')
+            
+            for line in config_file:
+                if line[:12] == "Controller: ":
+                    self.controller_ip = line[12:].strip('\n')
+                    break
+
+            print("[controller] Replacing node information files...")
+            node_dir = __file__.replace("/src/purmasctld.py","/Nodes")
+            try:
+                os.listdir(node_dir)
+            except:
+                raise Warning("[controller] Could not update the /Nodes directory")
+
+            self.nodes = {}
+            for file in os.listdir(node_dir):
+                os.remove(f"{node_dir}/{file}")
+            for line in config_file:
+                if line[:6] == "Node: ":
+                    node_info = line.split()
+                    try:
+                        node_name = node_info[1]
+                        node_ip = node_info[2]
+                        with open(f"{node_dir}/{node_name}.txt",'w') as node_file:
+                            node_file.write(f"ip address: {node_ip}\n")
+                        self.nodes[node_name] = node_ip
+                    except:
+                        print(f"[controller] Incorrect config file syntax:\n{line}Should be in the following format:\nNode: [node_name] [node_ip]")
+            
+            print("[controller] Checking nodes...")
+            self.status = {}
+            for node_name in self.nodes:
+                try:
+                    comm = internode(host=self.nodes[node_name])
+                    comm.start()
+                    comm.connect()
+                    #tell worker to configure
+                    comm.write("config")
+                    comm.read()
+                    #send: controller ip
+                    comm.write(self.controller_ip)
+                    #set node status
+                    self.status[node_name] = comm.read()
+                except:
+                    self.status[node_name] = "DOWN"
+
+            print("[controller] Configured")
+            config_file.close()
         else:
             print(f'Invalid argument in pconfig: {option}')
 

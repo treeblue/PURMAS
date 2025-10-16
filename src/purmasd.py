@@ -2,10 +2,11 @@ from comms import internode
 
 class worker:
     def __init__(self):
-        self.node_name = "NAMELESS NODE"
+        # self.node_name = "NAMELESS NODE"
         self.is_running = True
         self.status = "UNKOWN"
-        self.commands = {"job": self.job}
+        self.commands = {"config":self.config,
+                        "job": self.job}
         self.controller_ip = ""
         # self.port = 25732
         
@@ -21,6 +22,13 @@ class worker:
                 self.commands[cmd]()
             self.comm.close()
         self.comm.kill()
+
+    def config(self):
+        self.comm.write("next")
+        self.controller_ip = self.comm.read()
+        print("configured")
+        self.comm.write("UP")
+        
 
     def job(self):
         self.comm.write("next")
