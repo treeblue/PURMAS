@@ -1,11 +1,11 @@
 import time
-# import threading
+import threading
 import os
 from comms import intranode, internode
 
 class controller:
     def __init__(self):
-        self.is_running = True
+        self.is_running = False
         self.commands = {"pconfig": self.config,
                         "psubmit": self.submit} #all commands
         self.nodes = {} #node name and node ip
@@ -13,10 +13,19 @@ class controller:
         self.jobs = {}
 
     def start(self):
+        self.is_running = True
+        #start scheduler
+        ctl = threading.Thread(target=self.scheduler)
+        ctl.daemon = True
+        ctl.start()
+        print("[controller] Scheduler is running")
+
+        #start unix port and listen
         self.comm = intranode(server=True)
         self.comm.start()
         self.comm.bind()
         self.comm.listen()
+        print("[controller] UNIX port active and listening")
         while self.is_running:
             self.comm.accept()
             cmd = self.comm.read()
@@ -24,6 +33,11 @@ class controller:
                 self.commands[cmd]()
             self.comm.close()
         self.comm.kill()
+
+    def scheduler(self):
+        while self.is_running:
+            print("[controller] Scheduler active...")
+            time.sleep(30.)
 
     def config(self):
         self.comm.write("next")
