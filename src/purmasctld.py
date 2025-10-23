@@ -49,6 +49,8 @@ class controller:
                 self.assign_job()
                 print(f"[controller] {len(self.jobs)} job(s) scheduled")
 
+
+
     def assign_job(self):
         #choose node better
         host = None
@@ -77,7 +79,7 @@ class controller:
         comm.write(f"{JID}")
         comm.read()
 
-        self.status[host] == "BUSY"
+        self.status[host] = "BUSY"
         self.pending[job] = self.jobs[job]
         del self.jobs[job]
 
