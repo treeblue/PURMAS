@@ -7,10 +7,13 @@ class controller:
     def __init__(self):
         self.is_running = False
         self.commands = {"pconfig": self.config,
-                        "psubmit": self.submit} #all commands
+                        "psubmit": self.submit,
+                        "pinfo": self.info} #all commands
         self.nodes = {} #node name and node ip
         self.status = {} #node name and node status
         self.jobs = {}
+
+    # scheduler controls
 
     def start(self):
         self.is_running = True
@@ -18,7 +21,6 @@ class controller:
         ctl = threading.Thread(target=self.scheduler)
         ctl.daemon = True
         ctl.start()
-        print("[controller] Scheduler is running")
 
         #start unix port and listen
         self.comm = intranode(server=True)
@@ -37,7 +39,9 @@ class controller:
     def scheduler(self):
         while self.is_running:
             print("[controller] Scheduler active...")
-            time.sleep(30.)
+            time.sleep(60.)
+
+    #admin controls
 
     def config(self):
         self.comm.write("next")
@@ -101,6 +105,8 @@ class controller:
         else:
             print(f'Invalid argument in pconfig: {option}')
 
+    #user controls
+
     def submit(self):
         self.comm.write("next")
         files = []
@@ -120,7 +126,14 @@ class controller:
         for i in files:
             print(i)
 
-
+    def info(self):
+        self.comm.write("next")
+        for node in self.nodes:
+            print(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
+            self.comm.write(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
+            time.sleep(0.1)
+        self.comm.write("done")
+        self.comm.close()
         
 
 if __name__ == "__main__":
