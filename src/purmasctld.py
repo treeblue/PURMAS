@@ -49,7 +49,8 @@ class controller:
                 self.assign_job()
                 print(f"[controller] {len(self.jobs)} job(s) scheduled")
 
-
+            if len(self.pending) > 0:
+                self.job_cleanup()
 
     def assign_job(self):
         #choose node better
@@ -80,10 +81,24 @@ class controller:
         comm.read()
 
         self.status[host] = "BUSY"
-        self.pending[job] = self.jobs[job]
-        del self.jobs[job]
+        self.pending[JID] = [self.jobs[JID],host]
+        del self.jobs[JID]
 
-        # print(host,JID)
+    def job_cleanup(self): #THIS DOESNT WORK PROPERLY UNLESS RUN FROM PURMAS FOLDER!!!
+        #just checks if files exists and resets worker status
+        done = []
+        for JID in self.pending:
+            try:
+                with open(f"Jobs/{JID}stdout.txt", 'r') as stdout:
+                    None
+                self.status[self.pending[JID][1]] = "UP"
+                done.append(JID)
+            except:
+                None
+
+        for JID in done:
+            del self.pending[JID]
+
 
     #admin controls
 
@@ -172,7 +187,7 @@ class controller:
         # comm.write(files[0])
         # comm.read()
 
-    def info(self):
+    def info(self): #wont show jobs in pending
         self.comm.write("next")
         mode = self.comm.read()
 
