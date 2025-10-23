@@ -39,12 +39,14 @@ class controller:
 
     def scheduler(self):
         while self.is_running:
+            time.sleep(60.)
             if len(self.jobs) == 0:
                 print("[controller] Job list empty...")
             else:
-                for job in self.jobs:
-                    print(job, self.jobs[job])
-            time.sleep(60.)
+                print(f"[controller] {len(self.jobs)} jobs scheduled")
+                # for job in self.jobs:
+                #     None
+            
 
     #admin controls
 
@@ -135,12 +137,24 @@ class controller:
 
     def info(self):
         self.comm.write("next")
-        for node in self.nodes:
-            print(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
-            self.comm.write(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
-            time.sleep(0.1)
-        self.comm.write("done")
-        self.comm.close()
+        mode = self.comm.read()
+        print(mode)
+
+        if mode == "all" or mode == "nodes":
+            for node in self.nodes:
+                # print(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
+                self.comm.write(f'{node}\t| {self.nodes[node]}\t| {self.status[node]}')
+                self.comm.read()
+            self.comm.write("done")
+            self.comm.read()
+
+        if mode == "all" or mode == "jobs":
+            for job in self.jobs:
+                # print(f'{job}\t| {self.jobs[job]}')
+                self.comm.write(f'{job}\t| {self.jobs[job]}')
+                self.comm.read()
+            self.comm.write("done")
+            self.comm.read()
         
 
 if __name__ == "__main__":
