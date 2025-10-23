@@ -12,6 +12,7 @@ class controller:
         self.nodes = {} #node name and node ip
         self.status = {} #node name and node status
         self.jobs = {}
+        self.job_no = 1
 
     # scheduler controls
 
@@ -38,7 +39,11 @@ class controller:
 
     def scheduler(self):
         while self.is_running:
-            print("[controller] Scheduler active...")
+            if len(self.jobs) == 0:
+                print("[controller] Job list empty...")
+            else:
+                for job in self.jobs:
+                    print(job, self.jobs[job])
             time.sleep(60.)
 
     #admin controls
@@ -115,16 +120,18 @@ class controller:
             files.append(arg)
             arg = self.comm.read()
         
-        comm = internode(host="192.168.0.32")
-        comm.start()
-        comm.connect()
-        comm.write("job")
-        comm.read()
-        comm.write(files[0])
-        comm.read()
+        for file in files:
+            self.jobs[self.job_no] = file
+            print(f"[controller] Job {self.job_no} submitted")
+            self.job_no += 1
 
-        for i in files:
-            print(i)
+        # comm = internode(host="192.168.0.32")
+        # comm.start()
+        # comm.connect()
+        # comm.write("job")
+        # comm.read()
+        # comm.write(files[0])
+        # comm.read()
 
     def info(self):
         self.comm.write("next")
