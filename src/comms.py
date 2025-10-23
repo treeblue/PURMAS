@@ -36,10 +36,10 @@ class intranode:
 
     def read(self)->str:
         if self.server:
-            data = self.conn.recv(1024).decode()
+            data = self.conn.recv(2048).decode()
             return data
         else:
-            data = self.sock.recv(1024).decode()
+            data = self.sock.recv(2048).decode()
             return data
 
     def close(self):
