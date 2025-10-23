@@ -11,7 +11,8 @@ class controller:
                         "pinfo": self.info} #all commands
         self.nodes = {} #node name and node ip
         self.status = {} #node name and node status
-        self.jobs = {}
+        self.jobs = {} #job id and job file
+        self.pending = {} #job id and job file
         self.job_no = 1
 
     # scheduler controls
@@ -42,11 +43,42 @@ class controller:
             time.sleep(60.)
             if len(self.jobs) == 0:
                 print("[controller] Job list empty...")
+            elif len(self.nodes) == 0:
+                print("[controller] No worker nodes! Try updating the config file and running pconfig")
             else:
-                print(f"[controller] {len(self.jobs)} jobs scheduled")
-                # for job in self.jobs:
-                #     None
-            
+                self.assign_job()
+                print(f"[controller] {len(self.jobs)} job(s) scheduled")
+
+    def assign_job(self):
+        #choose node better
+        host = None
+        for node in self.nodes:
+            if self.status[node] == "UP":
+                host = node
+                break
+
+        if host == None:
+            return None
+        self.status[host] == "RUNNING"
+
+        #choose job better
+        JID = None
+        for job in self.jobs:
+            JID = job
+            break
+
+        comm = internode(host=self.nodes[host])
+        comm.start()
+        comm.connect()
+        comm.write("job")
+        comm.read()
+        comm.write(self.jobs[JID])
+        comm.read()
+
+        self.pending[job] = self.jobs[job]
+        del self.jobs[job]
+
+        # print(host,JID)
 
     #admin controls
 
@@ -138,7 +170,6 @@ class controller:
     def info(self):
         self.comm.write("next")
         mode = self.comm.read()
-        print(mode)
 
         if mode == "all" or mode == "nodes":
             for node in self.nodes:
