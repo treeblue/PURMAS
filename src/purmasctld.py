@@ -40,7 +40,7 @@ class controller:
 
     def scheduler(self):
         while self.is_running:
-            time.sleep(60.)
+            time.sleep(60.) #change to a varied timer
             if len(self.jobs) == 0:
                 print("[controller] Job list empty...")
             elif len(self.nodes) == 0:
@@ -61,6 +61,7 @@ class controller:
             return None
 
         #choose job better
+        #check job is valid
         JID = None
         for job in self.jobs:
             JID = job
@@ -73,7 +74,7 @@ class controller:
         comm.read()
         comm.write(self.jobs[JID])
         comm.read()
-        comm.write(JID)
+        comm.write(f"{JID}")
         comm.read()
 
         self.status[host] == "BUSY"
