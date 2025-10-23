@@ -1,4 +1,6 @@
 from comms import internode
+import subprocess
+import os
 
 class worker:
     def __init__(self):
@@ -15,7 +17,7 @@ class worker:
         self.comm.start()
         self.comm.bind()
         self.comm.listen()
-        while True:
+        while self.is_running:
             self.comm.accept()
             cmd = self.comm.read()
             if cmd in self.commands:
@@ -29,12 +31,24 @@ class worker:
         print("configured")
         self.comm.write("UP")
         
-
-    def job(self):
+    def job(self): #THESE DONT WORK PROPERLY UNLESS RUN FROM PURMAS FOLDER!!!
         self.comm.write("next")
         file = self.comm.read()
+        self.comm.write("next")
+        JID = self.comm.read()
         self.comm.write("thanks")
-        print(file)
+        print(f"Running job {JID}: {file}")
+
+        process = subprocess.Popen(["bash", file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        with open(f"Jobs/{JID}stdout.txt", "w") as file:
+            file.write(stdout.decode())
+        with open(f"Jobs/{JID}stderr.txt", "w") as file:
+            file.write(stderr.decode())
+
+        print(f"Job {JID} finished")
+        
 
 if __name__ == "__main__":
     w = worker()
