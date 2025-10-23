@@ -59,7 +59,6 @@ class controller:
 
         if host == None:
             return None
-        self.status[host] == "RUNNING"
 
         #choose job better
         JID = None
@@ -74,7 +73,10 @@ class controller:
         comm.read()
         comm.write(self.jobs[JID])
         comm.read()
+        comm.write(JID)
+        comm.read()
 
+        self.status[host] == "BUSY"
         self.pending[job] = self.jobs[job]
         del self.jobs[job]
 
